@@ -1,0 +1,14 @@
+{% load ui %}
+<div>
+  <div class="flex items-center justify-between gap-3 text-sm">
+    <span class="flex items-center gap-2 font-medium">
+      <span class="size-2.5 rounded-full" style="background-color: {{ row.budget.category.color }}"></span>
+      {{ row.budget.category.name }}{% if row.budget.property %} <span class="text-xs muted">· {{ row.budget.property.name }}</span>{% endif %}
+    </span>
+    <span class="tabular {% if row.over %}text-rose-600 dark:text-rose-400{% else %}muted{% endif %}">{{ row.spent|money:household }} of {{ row.budget.amount|money:household }}</span>
+  </div>
+  <div class="mt-2 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800" role="progressbar" aria-valuenow="{{ row.percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ row.budget.category.name }} budget used">
+    <div class="h-full rounded-full {% if row.over %}bg-rose-500{% elif row.percent >= 80 %}bg-amber-500{% else %}bg-emerald-500{% endif %}" style="width: {% if row.percent > 100 %}100{% else %}{{ row.percent }}{% endif %}%"></div>
+  </div>
+  <p class="mt-1 text-xs muted">{% if row.over %}Over by {{ row.remaining|absolute|money:household }}{% else %}{{ row.remaining|money:household }} left{% endif %}</p>
+</div>

@@ -23,12 +23,12 @@ class Payment(TimeStampedModel):
     """A payment a household member *recorded* against a bill.
 
     HouseLedger never moves money; a payment row only exists because a user
-    entered it. Bills with payments cannot be deleted (``PROTECT``) so the
+    entered it. Bills with payments cannot be deleted on their own (``RESTRICT``) so the
     payment history is never silently lost.
     """
 
     household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name="payments")
-    bill = models.ForeignKey(Bill, on_delete=models.PROTECT, related_name="payments")
+    bill = models.ForeignKey(Bill, on_delete=models.RESTRICT, related_name="payments")
     amount = MoneyField(validators=[MinValueValidator(Decimal("0.01"))])
     paid_on = models.DateField()
     method = models.CharField(

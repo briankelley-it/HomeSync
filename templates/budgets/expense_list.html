@@ -1,0 +1,24 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Expenses{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="page-title">Expenses</h1>
+    <p class="page-subtitle">One-off spending that is not a bill: groceries, repairs, household supplies.</p>
+  </div>
+  <div class="flex items-end gap-2">
+    <form method="get" class="form-field">
+      <label for="month" class="sr-only">Month</label>
+      <input id="month" type="month" name="month" value="{{ request.GET.month }}" onchange="this.form.submit()">
+    </form>
+    {% if membership.can_edit %}
+    <a href="{% url 'budgets:expense_create' %}" hx-get="{% url 'budgets:expense_create' %}" hx-target="#modal-content" class="btn-primary">{% icon "plus" %} Record expense</a>
+    {% endif %}
+  </div>
+</div>
+<div class="card mt-6 overflow-hidden">
+  {% include "budgets/partials/expense_table.html" %}
+  {% if is_paginated %}<div class="flex justify-end border-t border-gray-100 px-5 py-3 dark:border-gray-800">{% include "partials/pagination.html" %}</div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Documents{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="page-title">Documents</h1>
+    <p class="page-subtitle">Invoices, receipts, statements, and leases. Files are private to your household.</p>
+  </div>
+  {% if membership.can_edit %}
+  <a href="{% url 'documents:upload' %}" hx-get="{% url 'documents:upload' %}" hx-target="#modal-content" class="btn-primary">{% icon "plus" %} Upload</a>
+  {% endif %}
+</div>
+
+<nav class="mt-6 flex flex-wrap gap-2" aria-label="Document type">
+  <a href="{% url 'documents:list' %}" class="{% if not request.GET.kind %}badge-green{% else %}badge-gray{% endif %} !px-3 !py-1">All</a>
+  {% for value, label in kinds %}
+  <a href="?kind={{ value }}" class="{% if request.GET.kind == value %}badge-green{% else %}badge-gray{% endif %} !px-3 !py-1">{{ label }}</a>
+  {% endfor %}
+</nav>
+
+<div class="card mt-4 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead><tr><th>Title</th><th class="hidden md:table-cell">Type</th><th class="hidden lg:table-cell">Linked to</th><th class="hidden sm:table-cell">Size</th><th>Uploaded</th><th></th></tr></thead>
+      <tbody>
+        {% for doc in object_list %}
+        <tr>
+          <td>
+            <a href="{% url 'documents:download' doc.pk %}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 font-medium text-gray-900 hover:text-emerald-700 dark:text-white dark:hover:text-emerald-400">
+              <span class="text-gray-400">{% icon "document" "size-4" %}</span>{{ doc.title }}
+            </a>
+            <p class="text-xs muted">{{ doc.original_filename }}</p>
+          </td>
+          <td class="hidden md:table-cell">{{ doc.get_kind_display }}</td>
+          <td class="hidden lg:table-cell">
+            {% if doc.bill %}<a href="{{ doc.bill.get_absolute_url }}" class="hover:underline">{{ doc.bill.name }}</a>{% elif doc.property %}<a href="{{ doc.property.get_absolute_url }}" class="hover:underline">{{ doc.property.name }}</a>{% else %}—{% endif %}
+          </td>
+          <td class="hidden sm:table-cell">{{ doc.size|filesizeformat }}</td>
+          <td><span class="tabular">{{ doc.created_at|date:"M j, Y" }}</span><p class="text-xs muted">{{ doc.uploaded_by.display_name|default:"" }}</p></td>
+          <td class="text-right whitespace-nowrap">
+            <a href="{% url 'documents:download' doc.pk %}?download=1" class="btn-ghost !p-1" aria-label="Download {{ doc.title }}">{% icon "download" "size-4" %}</a>
+            {% if membership.can_edit %}
+            <a href="{% url 'documents:delete' doc.pk %}" hx-get="{% url 'documents:delete' doc.pk %}" hx-target="#modal-content" class="btn-ghost !p-1 text-rose-600" aria-label="Delete {{ doc.title }}">{% icon "trash" "size-4" %}</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="!py-12 text-center muted">No documents yet. Upload PDF invoices or photos of receipts (max 10 MB).</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if is_paginated %}<div class="flex justify-end border-t border-gray-100 px-5 py-3 dark:border-gray-800">{% include "partials/pagination.html" %}</div>{% endif %}
+</div>
+{% endblock %}

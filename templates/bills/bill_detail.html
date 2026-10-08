@@ -1,0 +1,103 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}{{ bill.name }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'bills:list' %}" class="hover:underline">Bills</a> / {{ bill.name }}{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="page-title">{{ bill.name }}</h1>
+      {% status_badge bill.display_status %}
+    </div>
+    <p class="page-subtitle">
+      <span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full" style="background-color: {{ bill.category.color }}"></span>{{ bill.category.name }}</span>
+      {% if bill.payee %} · {{ bill.payee }}{% endif %}
+      {% if bill.property %} · <a href="{{ bill.property.get_absolute_url }}" class="hover:underline">{{ bill.property.name }}</a>{% endif %}
+      {% if bill.recurring %} · <a href="{{ bill.recurring.get_absolute_url }}" class="hover:underline">{{ bill.recurring.get_frequency_display }} schedule</a>{% endif %}
+    </p>
+  </div>
+  {% if membership.can_edit %}
+  <div class="flex gap-2">
+    <a href="{% url 'bills:update' bill.pk %}" hx-get="{% url 'bills:update' bill.pk %}" hx-target="#modal-content" class="btn-secondary">{% icon "pencil" %} Edit</a>
+    <a href="{% url 'bills:delete' bill.pk %}" hx-get="{% url 'bills:delete' bill.pk %}" hx-target="#modal-content" class="btn-ghost text-rose-600">{% icon "trash" %}<span class="sr-only">Delete</span></a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="mt-8 grid gap-4 sm:grid-cols-3">
+  <div class="card card-body"><p class="metric-label">Amount due</p><p class="metric-value">{{ bill.amount_due|money:household }}</p><p class="mt-1 text-xs muted">Due {{ bill.due_date|date:"l, M j, Y" }}</p></div>
+  <div class="card card-body"><p class="metric-label">Paid</p><p class="metric-value">{{ bill.amount_paid|money:household }}</p>
+    <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800"><div class="h-full rounded-full bg-emerald-500" style="width: {{ bill.amount_paid|percent_of:bill.amount_due }}%"></div></div>
+  </div>
+  <div class="card card-body"><p class="metric-label">Remaining balance</p><p class="metric-value {% if bill.balance %}{% if bill.display_status == 'overdue' %}!text-rose-600{% endif %}{% else %}!text-emerald-600{% endif %}">{{ bill.balance|money:household }}</p>
+    <p class="mt-1 text-xs muted">{% if bill.is_paid %}Paid in full{% if bill.paid_on %} on {{ bill.paid_on|date:"M j" }}{% endif %}{% elif bill.days_until_due < 0 %}{{ bill.days_overdue }} day{{ bill.days_overdue|pluralize }} overdue{% else %}{{ bill.days_until_due }} day{{ bill.days_until_due|pluralize }} left{% endif %}</p>
+  </div>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+    <div class="card">
+      <div class="card-header"><h2 class="card-title">Payment history</h2></div>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead><tr><th>Date</th><th>Method</th><th>Reference</th><th>Recorded by</th><th class="text-right">Amount</th><th></th></tr></thead>
+          <tbody>
+            {% for p in payments %}
+            <tr>
+              <td class="tabular">{{ p.paid_on|date:"M j, Y" }}</td>
+              <td>{{ p.get_method_display }}</td>
+              <td>{{ p.reference|default:"—" }}</td>
+              <td>{{ p.recorded_by.display_name|default:"—" }}</td>
+              <td class="tabular text-right font-semibold">{{ p.amount|money:household }}</td>
+              <td class="text-right">
+                {% if membership.can_edit %}
+                <form method="post" action="{% url 'payments:delete' p.pk %}" onsubmit="return confirm('Remove this payment record? The bill balance will be recalculated.')">
+                  {% csrf_token %}<button class="btn-ghost btn-sm text-rose-600" aria-label="Remove payment">{% icon "trash" "size-4" %}</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="!py-8 text-center muted">No payments recorded yet. HouseLedger only marks a bill paid when someone records a payment.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% if bill.notes %}
+    <div class="card card-body"><h2 class="card-title">Notes</h2><p class="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">{{ bill.notes }}</p></div>
+    {% endif %}
+  </div>
+
+  <div class="space-y-6">
+    {% if payment_form %}
+    <div class="card">
+      <div class="card-header"><h2 class="card-title">Record a payment</h2></div>
+      <form method="post" action="{% url 'payments:record' bill.pk %}" class="card-body space-y-4" novalidate>
+        {% csrf_token %}
+        {% for field in payment_form %}{{ field.as_field_group }}{% endfor %}
+        <button type="submit" class="btn-primary w-full">{% icon "check-circle" %} Record payment</button>
+        <p class="text-xs muted">Recording a payment does not move money. It only updates your ledger.</p>
+      </form>
+    </div>
+    {% endif %}
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Documents</h2>
+        {% if membership.can_edit %}<a href="{% url 'documents:upload' %}?bill={{ bill.pk }}&next={{ request.path|urlencode }}" class="text-xs font-semibold text-emerald-700 hover:underline dark:text-emerald-400">Upload</a>{% endif %}
+      </div>
+      <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+        {% for doc in documents %}
+        <li class="flex items-center gap-3 px-5 py-3 text-sm">
+          <span class="text-gray-400">{% icon "paperclip" "size-4" %}</span>
+          <a href="{% url 'documents:download' doc.pk %}" target="_blank" rel="noopener" class="flex-1 truncate font-medium hover:underline">{{ doc.title }}</a>
+          <span class="text-xs muted">{{ doc.size|filesizeformat }}</span>
+        </li>
+        {% empty %}
+        <li class="px-5 py-6 text-sm muted">No invoices or receipts attached.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -8,6 +8,7 @@ urlpatterns = [
     path("new/", views.HouseholdCreateView.as_view(), name="create"),
     path("switch/", views.switch_household, name="switch"),
     path("settings/", views.HouseholdSettingsView.as_view(), name="settings"),
+    path("delete/", views.delete_household, name="delete"),
     path("members/", views.MembersView.as_view(), name="members"),
     path("members/<int:pk>/role/", views.change_member_role, name="change_role"),
     path("members/<int:pk>/remove/", views.remove_member, name="remove_member"),

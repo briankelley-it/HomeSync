@@ -1,0 +1,14 @@
+{% load ui %}
+{% if is_paginated %}
+<nav class="flex items-center gap-2" aria-label="Pagination">
+  {% if page_obj.has_previous %}
+  <a class="btn-secondary btn-sm" href="?{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"
+     {% if target %}hx-get="?{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" hx-target="{{ target }}" hx-push-url="true"{% endif %}>{% icon "chevron-left" %}<span class="sr-only">Previous</span></a>
+  {% endif %}
+  <span class="text-xs muted">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+  <a class="btn-secondary btn-sm" href="?{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"
+     {% if target %}hx-get="?{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" hx-target="{{ target }}" hx-push-url="true"{% endif %}>{% icon "chevron-right" %}<span class="sr-only">Next</span></a>
+  {% endif %}
+</nav>
+{% endif %}

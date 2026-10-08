@@ -1,0 +1,17 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Calendar{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="page-title">Bill calendar</h1>
+    <p class="page-subtitle">Due dates and payment status at a glance.</p>
+  </div>
+  <div class="flex flex-wrap items-center gap-2 text-xs">
+    {% status_badge "paid" %} {% status_badge "partial" %} {% status_badge "due_soon" %} {% status_badge "overdue" %} {% status_badge "unpaid" %}
+  </div>
+</div>
+<div id="calendar" class="mt-6">
+  {% include "bills/partials/calendar_grid.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% load ui %}
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Bill</th>
+          <th class="hidden md:table-cell">Category</th>
+          <th class="hidden lg:table-cell">Property</th>
+          <th>Due</th>
+          <th class="text-right">Amount</th>
+          <th class="hidden text-right sm:table-cell">Balance</th>
+          <th>Status</th>
+          <th><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bill in object_list %}
+        <tr>
+          <td>
+            <a href="{{ bill.get_absolute_url }}" class="font-medium text-gray-900 hover:text-emerald-700 dark:text-white dark:hover:text-emerald-400">{{ bill.name }}</a>
+            {% if bill.recurring_id %}<span class="ml-1 text-gray-400" title="Recurring">{% icon "arrow-path" "inline size-3.5" %}</span>{% endif %}
+            {% if bill.payee %}<p class="text-xs muted">{{ bill.payee }}</p>{% endif %}
+          </td>
+          <td class="hidden md:table-cell"><span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full" style="background-color: {{ bill.category.color }}"></span>{{ bill.category.name }}</span></td>
+          <td class="hidden lg:table-cell">{{ bill.property.name|default:"—" }}</td>
+          <td class="tabular">{{ bill.due_date|date:"M j, Y" }}</td>
+          <td class="tabular text-right">{{ bill.amount_due|money:household }}</td>
+          <td class="tabular hidden text-right font-semibold sm:table-cell">{{ bill.balance|money:household }}</td>
+          <td>{% status_badge bill.display_status %}</td>
+          <td class="text-right">
+            {% if membership.can_edit and not bill.is_paid %}
+            <a href="{% url 'payments:record' bill.pk %}" hx-get="{% url 'payments:record' bill.pk %}" hx-target="#modal-content" class="btn-secondary btn-sm">Record payment</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="!py-12 text-center muted">No bills match these filters.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-5 py-3 text-sm dark:border-gray-800">
+    <span class="muted">{{ paginator.count }} bill{{ paginator.count|pluralize }} · <span class="font-semibold text-gray-900 dark:text-white">{{ filtered_balance|money:household }}</span> outstanding</span>
+    {% include "partials/pagination.html" with target="#bill-table" %}
+  </div>
+</div>

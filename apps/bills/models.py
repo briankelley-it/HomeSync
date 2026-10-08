@@ -92,7 +92,7 @@ class RecurringBill(TimeStampedModel):
     property = models.ForeignKey(
         Property, on_delete=models.SET_NULL, null=True, blank=True, related_name="recurring_bills"
     )
-    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="+")
+    category = models.ForeignKey(Category, on_delete=models.RESTRICT, related_name="+")
     name = models.CharField(max_length=120)
     payee = models.CharField(max_length=120, blank=True)
     amount = MoneyField(validators=POSITIVE)
@@ -167,7 +167,7 @@ class Bill(TimeStampedModel):
     property = models.ForeignKey(
         Property, on_delete=models.SET_NULL, null=True, blank=True, related_name="bills"
     )
-    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="bills")
+    category = models.ForeignKey(Category, on_delete=models.RESTRICT, related_name="bills")
     recurring = models.ForeignKey(
         RecurringBill, on_delete=models.SET_NULL, null=True, blank=True, related_name="bills"
     )
@@ -235,3 +235,7 @@ class Bill(TimeStampedModel):
     @builtins.property
     def days_until_due(self) -> int:
         return (self.due_date - timezone.localdate()).days
+
+    @builtins.property
+    def days_overdue(self) -> int:
+        return max(0, -self.days_until_due)

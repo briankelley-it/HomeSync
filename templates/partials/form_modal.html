@@ -1,0 +1,16 @@
+{# Rendered into the shared <dialog> when a form is opened via HTMX. #}
+<form method="post" action="{{ form_action }}" enctype="multipart/form-data" novalidate
+      hx-post="{{ form_action }}" hx-target="#modal-content" hx-encoding="multipart/form-data">
+  {% csrf_token %}
+  <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+    <h2 id="modal-title" class="text-base font-semibold">{{ page_title }}</h2>
+    <button type="button" class="btn-ghost !p-1.5" data-modal-close aria-label="Close">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="max-h-[70vh] overflow-y-auto p-5">{{ form }}</div>
+  <div class="flex justify-end gap-3 border-t border-gray-100 px-5 py-4 dark:border-gray-800">
+    <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
+    <button type="submit" class="btn-primary">{{ submit_label }}</button>
+  </div>
+</form>

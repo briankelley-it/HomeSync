@@ -20,7 +20,7 @@ class BillForm(CategoryChoiceMixin, HouseholdModelForm):
         model = Bill
         fields = ("name", "payee", "category", "property", "amount_due", "due_date", "notes")
         widgets = {"due_date": DateInput(), "notes": forms.Textarea(attrs={"rows": 3})}
-        labels = {"amount_due": "Amount due", "property": "Property (optional)"}
+        labels = {"amount_due": "Amount due", "property": "Property"}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,7 +59,7 @@ class RecurringBillForm(CategoryChoiceMixin, HouseholdModelForm):
             "end_date": DateInput(),
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
-        labels = {"property": "Property (optional)", "start_date": "First due date"}
+        labels = {"property": "Property", "start_date": "First due date"}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

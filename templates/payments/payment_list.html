@@ -1,0 +1,31 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Payment history{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="page-title">Payment history</h1>
+    <p class="page-subtitle">Every payment your household has recorded. {{ outstanding|money:household }} is still owed across open bills.</p>
+  </div>
+  <a href="{% url 'payments:export' %}?{{ querystring }}" class="btn-secondary">{% icon "download" %} Export CSV</a>
+</div>
+
+<form class="mt-6 flex flex-wrap items-end gap-3" hx-get="{% url 'payments:list' %}" hx-target="#payment-table" hx-push-url="true" hx-trigger="change">
+  <div class="form-field"><label for="f-start">From</label><input id="f-start" type="date" name="start" value="{{ request.GET.start }}"></div>
+  <div class="form-field"><label for="f-end">To</label><input id="f-end" type="date" name="end" value="{{ request.GET.end }}"></div>
+  <div class="form-field"><label for="f-method">Method</label>
+    <select id="f-method" name="method"><option value="">Any method</option>{% for v, l in methods %}<option value="{{ v }}" {% if request.GET.method == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  </div>
+  <div class="form-field"><label for="f-cat">Category</label>
+    <select id="f-cat" name="category"><option value="">All</option>{% for c in categories %}<option value="{{ c.pk }}" {% if request.GET.category == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select>
+  </div>
+  {% if properties %}
+  <div class="form-field"><label for="f-prop">Property</label>
+    <select id="f-prop" name="property"><option value="">All</option>{% for p in properties %}<option value="{{ p.pk }}" {% if request.GET.property == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>{% endfor %}</select>
+  </div>
+  {% endif %}
+  <noscript><button class="btn-secondary">Filter</button></noscript>
+</form>
+
+<div id="payment-table" class="mt-4">{% include "payments/partials/payment_table.html" %}</div>
+{% endblock %}

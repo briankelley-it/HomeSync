@@ -1,0 +1,19 @@
+{% load ui %}
+<form method="post" action="{% url 'payments:record' bill.pk %}" hx-post="{% url 'payments:record' bill.pk %}" hx-target="#modal-content" novalidate>
+  {% csrf_token %}
+  <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+    <div>
+      <h2 id="modal-title" class="text-base font-semibold">Record payment</h2>
+      <p class="text-xs muted">{{ bill.name }} · {{ bill.balance|money:household }} remaining of {{ bill.amount_due|money:household }}</p>
+    </div>
+    <button type="button" class="btn-ghost !p-1.5" data-modal-close aria-label="Close">{% icon "x-mark" %}</button>
+  </div>
+  <div class="p-5">{{ form }}</div>
+  <div class="flex items-center justify-between gap-3 border-t border-gray-100 px-5 py-4 dark:border-gray-800">
+    <p class="text-xs muted">This records a payment in your ledger. No money is moved.</p>
+    <div class="flex gap-3">
+      <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
+      <button type="submit" class="btn-primary">Record payment</button>
+    </div>
+  </div>
+</form>

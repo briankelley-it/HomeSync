@@ -5,6 +5,8 @@ from decimal import Decimal, InvalidOperation
 from django import template
 from django.utils.html import format_html
 
+from apps.core.money import format_money
+
 register = template.Library()
 
 # Heroicons (MIT) outline paths, 24x24, stroke-based.
@@ -57,15 +59,7 @@ def icon(name: str, css_class: str = "size-5") -> str:
 @register.filter
 def money(value, household=None) -> str:
     """Format a Decimal as currency, e.g. ``1234.5`` -> ``$1,234.50``."""
-    if value in (None, ""):
-        value = Decimal("0")
-    try:
-        amount = Decimal(value)
-    except (InvalidOperation, TypeError, ValueError):
-        return ""
-    symbol = household.currency_symbol if household is not None else "$"
-    sign = "-" if amount < 0 else ""
-    return f"{sign}{symbol}{abs(amount):,.2f}"
+    return format_money(value, household)
 
 
 STATUS_BADGES = {
@@ -104,3 +98,11 @@ def percent_of(value, total) -> int:
     if total <= 0:
         return 0
     return max(0, min(100, int(value / total * 100)))
+
+
+@register.filter
+def absolute(value):
+    try:
+        return abs(Decimal(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return value

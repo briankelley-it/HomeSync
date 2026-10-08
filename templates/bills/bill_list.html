@@ -1,0 +1,46 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Bills{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="page-title">Bills</h1>
+    <p class="page-subtitle">Everything your household owes, when it is due, and what has been paid.</p>
+  </div>
+  {% if membership.can_edit %}
+  <div class="flex gap-2">
+    <a href="{% url 'bills:recurring_create' %}" hx-get="{% url 'bills:recurring_create' %}" hx-target="#modal-content" class="btn-secondary">{% icon "arrow-path" %} Recurring</a>
+    <a href="{% url 'bills:create' %}" hx-get="{% url 'bills:create' %}" hx-target="#modal-content" class="btn-primary">{% icon "plus" %} Add bill</a>
+  </div>
+  {% endif %}
+</div>
+
+<form id="bill-filters" class="mt-6 flex flex-wrap items-center gap-3"
+      hx-get="{% url 'bills:list' %}" hx-target="#bill-table" hx-push-url="true"
+      hx-trigger="change, keyup changed delay:300ms from:input[name=q]">
+  <div class="flex rounded-lg bg-gray-100 p-1 dark:bg-gray-800" role="radiogroup" aria-label="Status">
+    {% for value, label in status_choices %}
+    <label class="cursor-pointer">
+      <input type="radio" name="status" value="{{ value }}" class="peer sr-only" {% if status == value %}checked{% endif %}>
+      <span class="block rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 peer-checked:bg-white peer-checked:text-gray-900 peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 dark:text-gray-400 dark:peer-checked:bg-gray-900 dark:peer-checked:text-white">{{ label }}</span>
+    </label>
+    {% endfor %}
+  </div>
+  <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search bills or payees" class="input !w-56" aria-label="Search bills">
+  <select name="category" class="input !w-auto" aria-label="Category">
+    <option value="">All categories</option>
+    {% for c in categories %}<option value="{{ c.pk }}" {% if request.GET.category == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+  </select>
+  {% if properties %}
+  <select name="property" class="input !w-auto" aria-label="Property">
+    <option value="">All properties</option>
+    {% for p in properties %}<option value="{{ p.pk }}" {% if request.GET.property == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+  </select>
+  {% endif %}
+  <noscript><button class="btn-secondary">Filter</button></noscript>
+</form>
+
+<div id="bill-table" class="mt-4">
+  {% include "bills/partials/bill_table.html" %}
+</div>
+{% endblock %}

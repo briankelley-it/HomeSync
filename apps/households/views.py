@@ -52,6 +52,22 @@ class HouseholdSettingsView(HouseholdManageMixin, UpdateView):
         return super().form_valid(form)
 
 
+@login_required
+@require_POST
+def delete_household(request):
+    """Owners can permanently delete the active household after typing its name."""
+    require_role(request.membership, "owner")
+    household = request.household
+    if request.POST.get("confirm_name", "").strip() != household.name:
+        messages.error(request, "Type the household name exactly to confirm deletion.")
+        return redirect("households:settings")
+    name = household.name
+    household.delete()
+    request.session.pop(SESSION_KEY, None)
+    messages.success(request, f"{name} and all of its records were deleted.")
+    return redirect("core:dashboard")
+
+
 class MembersView(HouseholdMixin, FormView):
     """Member list plus the invitation form (admins only may submit it)."""
 

@@ -1,0 +1,16 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-3xl">
+  <h1 class="page-title">{{ page_title }}</h1>
+  {% block form_intro %}{% endblock %}
+  <form method="post" action="{{ form_action }}" enctype="multipart/form-data" class="card mt-6" novalidate>
+    {% csrf_token %}
+    <div class="card-body">{{ form }}</div>
+    <div class="flex justify-end gap-3 border-t border-gray-100 px-5 py-4 dark:border-gray-800">
+      <a href="{{ cancel_url }}" class="btn-secondary">Cancel</a>
+      <button type="submit" class="btn-primary">{{ submit_label }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

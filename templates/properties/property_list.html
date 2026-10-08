@@ -1,0 +1,49 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Properties{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="page-title">Properties</h1>
+    <p class="page-subtitle">Homes and units your household pays for. Assign bills, budgets, members, and expenses to each.</p>
+  </div>
+  {% if membership.can_manage %}
+  <a href="{% url 'properties:create' %}" hx-get="{% url 'properties:create' %}" hx-target="#modal-content" class="btn-primary">{% icon "plus" %} Add property</a>
+  {% endif %}
+</div>
+<div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+  {% for p in object_list %}
+  <a href="{{ p.get_absolute_url }}" class="card block overflow-hidden transition hover:border-emerald-300 dark:hover:border-emerald-500/40">
+    <div class="h-2 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
+    <div class="card-body">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="truncate font-semibold text-gray-900 dark:text-white">{{ p.name }}</p>
+          <p class="mt-0.5 truncate text-xs muted">{{ p.address|default:p.get_property_type_display }}</p>
+        </div>
+        {% if p.is_primary %}<span class="badge-green">Primary</span>{% else %}<span class="badge-gray">{{ p.get_property_type_display }}</span>{% endif %}
+      </div>
+      <div class="mt-5 flex items-end justify-between">
+        <div>
+          <p class="metric-label">Open balance</p>
+          <p class="tabular mt-1 text-xl font-semibold">{{ p.open_balance|money:household }}</p>
+        </div>
+        <p class="text-xs muted">{{ p.open_bills }} open bill{{ p.open_bills|pluralize }}</p>
+      </div>
+      {% with members=p.members.all %}
+      {% if members %}
+      <div class="mt-4 flex -space-x-2">
+        {% for m in members|slice:":5" %}<span class="grid size-7 place-items-center rounded-full bg-emerald-100 text-[10px] font-semibold text-emerald-700 ring-2 ring-white dark:bg-emerald-500/15 dark:text-emerald-400 dark:ring-gray-900" title="{{ m.user.display_name }}">{{ m.user.initials }}</span>{% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+    </div>
+  </a>
+  {% empty %}
+  <div class="card card-body text-center sm:col-span-2 xl:col-span-3">
+    <p class="font-medium">No properties yet</p>
+    <p class="mt-1 text-sm muted">Add your home to group bills and budgets by property. Optional, but handy if you manage more than one place.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

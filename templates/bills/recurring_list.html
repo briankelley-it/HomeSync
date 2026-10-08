@@ -1,0 +1,34 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Recurring bills{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="page-title">Recurring bills</h1>
+    <p class="page-subtitle">Schedules that create upcoming bills automatically, about {{ monthly_equivalent|money:household }} per month on average.</p>
+  </div>
+  {% if membership.can_edit %}
+  <a href="{% url 'bills:recurring_create' %}" hx-get="{% url 'bills:recurring_create' %}" hx-target="#modal-content" class="btn-primary">{% icon "plus" %} New schedule</a>
+  {% endif %}
+</div>
+<div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+  {% for s in object_list %}
+  <a href="{{ s.get_absolute_url }}" class="card card-body block transition hover:border-emerald-300 dark:hover:border-emerald-500/40">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <p class="truncate font-semibold text-gray-900 dark:text-white">{{ s.name }}</p>
+        <p class="mt-0.5 truncate text-xs muted">{{ s.category.name }}{% if s.property %} · {{ s.property.name }}{% endif %}</p>
+      </div>
+      {% if s.is_active %}<span class="badge-green">Active</span>{% else %}<span class="badge-gray">Paused</span>{% endif %}
+    </div>
+    <p class="tabular mt-4 text-2xl font-semibold">{{ s.amount|money:household }}</p>
+    <p class="mt-1 text-xs muted">{{ s.get_frequency_display }} from {{ s.start_date|date:"M j, Y" }}{% if s.end_date %} until {{ s.end_date|date:"M j, Y" }}{% endif %}{% if s.autopay %} · autopay{% endif %}</p>
+  </a>
+  {% empty %}
+  <div class="card card-body text-center sm:col-span-2 xl:col-span-3">
+    <p class="font-medium">No recurring bills yet</p>
+    <p class="mt-1 text-sm muted">Add rent, utilities, insurance, and subscriptions once; HouseLedger schedules the rest.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

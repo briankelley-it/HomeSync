@@ -1,0 +1,71 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Budgets &amp; income{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="page-title">Budgets &amp; income</h1>
+    <p class="page-subtitle">{{ month_label }} · {{ summary.income|money:household }} monthly income · {{ summary.remaining_budget|money:household }} estimated remaining</p>
+  </div>
+  {% if membership.can_edit %}
+  <a href="{% url 'budgets:expense_create' %}" hx-get="{% url 'budgets:expense_create' %}" hx-target="#modal-content" class="btn-primary">{% icon "plus" %} Record expense</a>
+  {% endif %}
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-3">
+  <div class="card lg:col-span-2">
+    <div class="card-header">
+      <h2 class="card-title">Monthly budgets</h2>
+      {% if membership.can_manage %}<a href="{% url 'budgets:budget_create' %}" hx-get="{% url 'budgets:budget_create' %}" hx-target="#modal-content" class="btn-secondary btn-sm">{% icon "plus" %} Budget</a>{% endif %}
+    </div>
+    <div class="card-body space-y-5">
+      {% for row in budgets %}
+      <div class="group relative">
+        {% include "budgets/partials/budget_bar.html" %}
+        {% if membership.can_manage %}
+        <div class="absolute -top-1 right-0 hidden gap-1 bg-white group-hover:flex dark:bg-gray-900">
+          <a href="{% url 'budgets:budget_update' row.budget.pk %}" hx-get="{% url 'budgets:budget_update' row.budget.pk %}" hx-target="#modal-content" class="btn-ghost btn-sm">Edit</a>
+          <a href="{% url 'budgets:budget_delete' row.budget.pk %}" hx-get="{% url 'budgets:budget_delete' row.budget.pk %}" hx-target="#modal-content" class="btn-ghost btn-sm text-rose-600">Delete</a>
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <p class="text-sm muted">No budgets yet. Add a monthly limit for groceries, utilities, or any category.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Income sources</h2>
+      {% if membership.can_manage %}<a href="{% url 'budgets:income_create' %}" hx-get="{% url 'budgets:income_create' %}" hx-target="#modal-content" class="btn-secondary btn-sm">{% icon "plus" %} Income</a>{% endif %}
+    </div>
+    <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+      {% for src in income_sources %}
+      <li class="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+        <div class="min-w-0">
+          <p class="truncate font-medium {% if not src.is_active %}line-through muted{% endif %}">{{ src.name }}</p>
+          <p class="text-xs muted">{{ src.amount|money:household }} {{ src.get_frequency_display|lower }}{% if src.earner %} · {{ src.earner.user.display_name }}{% endif %}</p>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="tabular font-semibold">{{ src.monthly_amount|money:household }}<span class="text-xs font-normal muted">/mo</span></span>
+          {% if membership.can_manage %}
+          <a href="{% url 'budgets:income_update' src.pk %}" hx-get="{% url 'budgets:income_update' src.pk %}" hx-target="#modal-content" class="btn-ghost !p-1" aria-label="Edit {{ src.name }}">{% icon "pencil" "size-4" %}</a>
+          {% endif %}
+        </div>
+      </li>
+      {% empty %}
+      <li class="px-5 py-6 text-sm muted">Add income to estimate what remains each month.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="card mt-6">
+  <div class="card-header">
+    <h2 class="card-title">Recent expenses</h2>
+    <a href="{% url 'budgets:expense_list' %}" class="text-xs font-semibold text-emerald-700 hover:underline dark:text-emerald-400">All expenses →</a>
+  </div>
+  {% include "budgets/partials/expense_table.html" with object_list=expenses %}
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% load ui %}
+<div class="card overflow-hidden">
+  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+    <div class="flex items-center gap-2">
+      <a href="{{ prev_url }}" hx-get="{{ prev_url }}" hx-target="#calendar" hx-push-url="true" class="btn-secondary !p-2" aria-label="Previous month">{% icon "chevron-left" "size-4" %}</a>
+      <h2 class="min-w-40 text-center text-base font-semibold" data-testid="calendar-month">{{ month|date:"F Y" }}</h2>
+      <a href="{{ next_url }}" hx-get="{{ next_url }}" hx-target="#calendar" hx-push-url="true" class="btn-secondary !p-2" aria-label="Next month">{% icon "chevron-right" "size-4" %}</a>
+      <a href="{{ today_url }}" hx-get="{{ today_url }}" hx-target="#calendar" hx-push-url="true" class="btn-ghost btn-sm">Today</a>
+    </div>
+    <p class="text-sm muted"><span class="font-semibold text-gray-900 dark:text-white">{{ month_total|money:household }}</span> due across {{ month_count }} bill{{ month_count|pluralize }} · {{ month_paid|money:household }} paid</p>
+  </div>
+  <div class="overflow-x-auto">
+    <div class="min-w-[720px]">
+      <div class="cal-grid border-b border-gray-100 bg-gray-50/80 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
+        {% for d in weekdays %}<div class="px-2 py-2">{{ d }}</div>{% endfor %}
+      </div>
+      {% for week in weeks %}
+      <div class="cal-grid">
+        {% for day, day_bills in week %}
+        <div class="cal-day {% if day.month != month.month %}bg-gray-50/60 dark:bg-gray-950/40{% endif %}">
+          <div class="mb-1 flex items-center justify-between">
+            <span class="grid size-6 place-items-center rounded-full text-xs font-medium {% if day == today %}bg-emerald-600 text-white{% elif day.month != month.month %}text-gray-400 dark:text-gray-600{% else %}text-gray-700 dark:text-gray-300{% endif %}">{{ day.day }}</span>
+            {% if membership.can_edit and day.month == month.month %}
+            <a href="{% url 'bills:create' %}?due_date={{ day|date:'Y-m-d' }}" hx-get="{% url 'bills:create' %}?due_date={{ day|date:'Y-m-d' }}" hx-target="#modal-content" class="text-gray-300 hover:text-emerald-600 dark:text-gray-700" aria-label="Add bill on {{ day|date:'M j' }}">{% icon "plus" "size-3.5" %}</a>
+            {% endif %}
+          </div>
+          {% for bill in day_bills %}
+            {% with st=bill.display_status %}
+            <a href="{{ bill.get_absolute_url }}" title="{{ bill.name }} · {{ bill.amount_due|money:household }}"
+               class="cal-chip {% if st == 'paid' %}bg-emerald-50 text-emerald-700 line-through decoration-emerald-400/60 dark:bg-emerald-500/10 dark:text-emerald-400{% elif st == 'overdue' %}bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400{% elif st == 'partial' %}bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400{% elif st == 'due_soon' %}bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400{% else %}bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300{% endif %}">
+              <span class="tabular">{{ bill.amount_due|money:household }}</span> {{ bill.name }}
+            </a>
+            {% endwith %}
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>

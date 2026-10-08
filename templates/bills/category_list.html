@@ -1,0 +1,29 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Categories{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="page-title">Categories</h1>
+    <p class="page-subtitle">Built-in categories cover common bills. Admins can add custom ones for your household.</p>
+  </div>
+  {% if membership.can_manage %}
+  <a href="{% url 'bills:category_create' %}" hx-get="{% url 'bills:category_create' %}" hx-target="#modal-content" class="btn-primary">{% icon "plus" %} New category</a>
+  {% endif %}
+</div>
+<div class="card mt-6 overflow-hidden">
+  <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+    {% for c in object_list %}
+    <li class="flex items-center gap-3 px-5 py-3 text-sm">
+      <span class="size-3 rounded-full" style="background-color: {{ c.color }}"></span>
+      <span class="flex-1 font-medium">{{ c.name }}</span>
+      {% if c.is_builtin %}<span class="badge-gray">Built-in</span>
+      {% elif membership.can_manage %}
+        <a href="{% url 'bills:category_update' c.pk %}" hx-get="{% url 'bills:category_update' c.pk %}" hx-target="#modal-content" class="btn-ghost btn-sm">Edit</a>
+        <a href="{% url 'bills:category_delete' c.pk %}" hx-get="{% url 'bills:category_delete' c.pk %}" hx-target="#modal-content" class="btn-ghost btn-sm text-rose-600">Delete</a>
+      {% else %}<span class="badge-blue">Custom</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

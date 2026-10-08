@@ -1,0 +1,74 @@
+{% extends "layouts/app.html" %}
+{% load ui static %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="page-title">Analytics</h1>
+    <p class="page-subtitle">Recorded spending{% if selected_property %} for {{ selected_property.name }}{% endif %}: bill payments plus one-off expenses.</p>
+  </div>
+  {% if properties %}
+  <form method="get">
+    <label for="prop-filter" class="sr-only">Property</label>
+    <select id="prop-filter" name="property" class="input !w-auto" onchange="this.form.submit()">
+      <option value="">Whole household</option>
+      {% for p in properties %}<option value="{{ p.pk }}" {% if selected_property.pk == p.pk %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+    </select>
+  </form>
+  {% endif %}
+</div>
+
+<div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="card card-body"><p class="metric-label">Monthly income</p><p class="metric-value">{{ summary.income|money:household }}</p><p class="mt-1 text-xs muted">Active income sources</p></div>
+  <div class="card card-body"><p class="metric-label">Bills due this month</p><p class="metric-value">{{ summary.bills_this_month|money:household }}</p></div>
+  <div class="card card-body"><p class="metric-label">Other expenses</p><p class="metric-value">{{ summary.expenses_this_month|money:household }}</p></div>
+  <div class="card card-body"><p class="metric-label">Estimated remaining</p><p class="metric-value {% if summary.remaining_budget < 0 %}!text-rose-600{% else %}!text-emerald-600 dark:!text-emerald-400{% endif %}">{{ summary.remaining_budget|money:household }}</p><p class="mt-1 text-xs muted">Income − bills − expenses</p></div>
+</div>
+
+<div class="mt-6 card">
+  <div class="card-header"><h2 class="card-title">12-month spending</h2></div>
+  <div class="card-body"><div class="relative h-72"><canvas id="trend-chart" role="img" aria-label="Spending over the last twelve months"></canvas></div></div>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">{{ last_month_label }} vs {{ this_month_label }}</h2></div>
+    <div class="card-body">
+      {% if chart_data.comparison.labels %}
+      <div class="relative h-72"><canvas id="comparison-chart" data-this-label="{{ this_month_label }}" data-last-label="{{ last_month_label }}" role="img" aria-label="Month over month spending by category"></canvas></div>
+      {% else %}<div class="grid h-72 place-items-center text-sm muted">Not enough data yet.</div>{% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">Category breakdown · {{ this_month_label }}</h2></div>
+    <div class="card-body">
+      {% if this_month %}
+      <div class="grid items-center gap-6 sm:grid-cols-2">
+        <div class="relative h-56"><canvas id="category-chart" data-legend="none" role="img" aria-label="Spending by category"></canvas></div>
+        <ul class="space-y-2 text-sm">
+          {% for c in this_month %}
+          <li class="flex items-center gap-2"><span class="size-2.5 rounded-full" style="background-color: {{ c.color }}"></span><span class="flex-1">{{ c.name }}</span><span class="tabular font-medium">{{ c.total|money:household }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% else %}<div class="grid h-56 place-items-center text-sm muted">No spending recorded this month.</div>{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="mt-6 card">
+  <div class="card-header">
+    <h2 class="card-title">Budgets · {{ this_month_label }}</h2>
+    <a href="{% url 'budgets:budget_list' %}" class="text-xs font-semibold text-emerald-700 hover:underline dark:text-emerald-400">Manage →</a>
+  </div>
+  <div class="card-body space-y-4">
+    {% for row in budgets %}{% include "budgets/partials/budget_bar.html" %}{% empty %}<p class="text-sm muted">No budgets yet. Set monthly limits per category to track progress here.</p>{% endfor %}
+  </div>
+</div>
+
+{{ chart_data|json_script:"chart-data" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'vendor/chart.umd.min.js' %}" defer></script>
+<script src="{% static 'js/charts.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Record payment{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-2xl">
+  <h1 class="page-title">Record a payment</h1>
+  <p class="page-subtitle"><a href="{{ bill.get_absolute_url }}" class="hover:underline">{{ bill.name }}</a> · {{ bill.balance|money:household }} remaining of {{ bill.amount_due|money:household }}</p>
+  <form method="post" class="card mt-6" novalidate>
+    {% csrf_token %}
+    <div class="card-body">{{ form }}</div>
+    <div class="flex justify-end gap-3 border-t border-gray-100 px-5 py-4 dark:border-gray-800">
+      <a href="{{ bill.get_absolute_url }}" class="btn-secondary">Cancel</a>
+      <button type="submit" class="btn-primary">Record payment</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

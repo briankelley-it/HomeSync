@@ -32,3 +32,6 @@ playwright-report/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Local Claude Code tooling
+.claude/

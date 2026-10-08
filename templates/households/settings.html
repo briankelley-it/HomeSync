@@ -18,5 +18,21 @@
     </div>
     <a href="{% url 'households:create' %}" class="btn-secondary">New household</a>
   </div>
+  {% if membership.is_owner %}
+  <form method="post" action="{% url 'households:delete' %}" class="card border-rose-200 dark:border-rose-500/30">
+    {% csrf_token %}
+    <div class="card-body space-y-4">
+      <div>
+        <h2 class="card-title text-rose-700 dark:text-rose-400">Delete household</h2>
+        <p class="mt-1 text-sm muted">Permanently deletes {{ household.name }} with all bills, payments, budgets, properties, and documents. This cannot be undone.</p>
+      </div>
+      <div class="form-field">
+        <label for="confirm-name">Type <strong>{{ household.name }}</strong> to confirm</label>
+        <input id="confirm-name" name="confirm_name" autocomplete="off">
+      </div>
+      <div class="flex justify-end"><button type="submit" class="btn-danger">Delete household</button></div>
+    </div>
+  </form>
+  {% endif %}
 </div>
 {% endblock %}

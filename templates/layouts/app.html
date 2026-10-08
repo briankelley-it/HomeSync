@@ -31,10 +31,22 @@
     <nav class="flex-1 space-y-6 overflow-y-auto px-3 pb-4" aria-label="Main">
       <div class="space-y-1">
         <a href="{% url 'core:dashboard' %}" class="nav-link {% nav_active 'core:dashboard' %}">{% icon "home" %} Dashboard</a>
+        <a href="{% url 'bills:list' %}" class="nav-link {% nav_active 'bills:list' 'bills:detail' 'bills:create' 'bills:update' 'bills:delete' %}">{% icon "receipt" %} Bills</a>
+        <a href="{% url 'bills:recurring_list' %}" class="nav-link {% nav_active 'bills:recurring' %}">{% icon "arrow-path" %} Recurring</a>
+        <a href="{% url 'bills:calendar' %}" class="nav-link {% nav_active 'bills:calendar' %}">{% icon "calendar" %} Calendar</a>
+        <a href="{% url 'payments:list' %}" class="nav-link {% nav_active 'payments:' %}">{% icon "banknotes" %} Payments</a>
+      </div>
+      <div class="space-y-1">
+        <p class="px-3 pb-1 text-xs font-semibold tracking-wider text-gray-400 uppercase">Planning</p>
+        <a href="{% url 'budgets:analytics' %}" class="nav-link {% nav_active 'budgets:analytics' %}">{% icon "chart-pie" %} Analytics</a>
+        <a href="{% url 'budgets:budget_list' %}" class="nav-link {% nav_active 'budgets:budget' 'budgets:income' 'budgets:expense' %}">{% icon "wallet" %} Budgets &amp; income</a>
+        <a href="{% url 'properties:list' %}" class="nav-link {% nav_active 'properties:' %}">{% icon "building" %} Properties</a>
+        <a href="{% url 'documents:list' %}" class="nav-link {% nav_active 'documents:' %}">{% icon "document" %} Documents</a>
       </div>
       <div class="space-y-1">
         <p class="px-3 pb-1 text-xs font-semibold tracking-wider text-gray-400 uppercase">Household</p>
         <a href="{% url 'households:members' %}" class="nav-link {% nav_active 'households:members' %}">{% icon "users" %} Members</a>
+        <a href="{% url 'bills:category_list' %}" class="nav-link {% nav_active 'bills:category' %}">{% icon "tag" %} Categories</a>
         <a href="{% url 'households:settings' %}" class="nav-link {% nav_active 'households:settings' 'households:create' %}">{% icon "cog" %} Settings</a>
       </div>
     </nav>

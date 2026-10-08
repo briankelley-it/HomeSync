@@ -1,0 +1,30 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}{{ object.name }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'bills:recurring_list' %}" class="hover:underline">Recurring</a> / {{ object.name }}{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <div class="flex items-center gap-3"><h1 class="page-title">{{ object.name }}</h1>{% if object.is_active %}<span class="badge-green">Active</span>{% else %}<span class="badge-gray">Paused</span>{% endif %}</div>
+    <p class="page-subtitle">{{ object.amount|money:household }} {{ object.get_frequency_display|lower }} · {{ object.category.name }}{% if object.payee %} · {{ object.payee }}{% endif %}</p>
+  </div>
+  {% if membership.can_edit %}
+  <div class="flex gap-2">
+    <a href="{% url 'bills:recurring_update' object.pk %}" hx-get="{% url 'bills:recurring_update' object.pk %}" hx-target="#modal-content" class="btn-secondary">{% icon "pencil" %} Edit</a>
+    <a href="{% url 'bills:recurring_delete' object.pk %}" hx-get="{% url 'bills:recurring_delete' object.pk %}" hx-target="#modal-content" class="btn-ghost text-rose-600">{% icon "trash" %}<span class="sr-only">Delete</span></a>
+  </div>
+  {% endif %}
+</div>
+<dl class="card card-body mt-6 grid gap-4 text-sm sm:grid-cols-4">
+  <div><dt class="metric-label">First due</dt><dd class="mt-1 font-medium">{{ object.start_date|date:"M j, Y" }}</dd></div>
+  <div><dt class="metric-label">Ends</dt><dd class="mt-1 font-medium">{{ object.end_date|date:"M j, Y"|default:"Never" }}</dd></div>
+  <div><dt class="metric-label">Scheduled through</dt><dd class="mt-1 font-medium">{{ object.generated_through|date:"M j, Y"|default:"—" }}</dd></div>
+  <div><dt class="metric-label">Autopay</dt><dd class="mt-1 font-medium">{{ object.autopay|yesno:"Yes (reference only),No" }}</dd></div>
+</dl>
+<div class="card mt-6">
+  <div class="card-header"><h2 class="card-title">Bills from this schedule</h2></div>
+  <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+    {% for bill in bills %}{% include "bills/partials/bill_row.html" %}{% empty %}<li class="px-5 py-6 text-sm muted">No bills generated yet.</li>{% endfor %}
+  </ul>
+</div>
+{% endblock %}

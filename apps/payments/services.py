@@ -15,6 +15,7 @@ from django.db.models import Max, Sum
 from django.utils import timezone
 
 from apps.bills.models import Bill, BillStatus
+from apps.core.money import format_money
 from apps.households.services import log_activity
 
 from .models import Payment
@@ -75,7 +76,8 @@ def record_payment(
         bill.household,
         recorded_by,
         "paid",
-        f"{recorded_by.display_name} recorded a {kind} of {amount} for {bill.name}",
+        f"{recorded_by.display_name} recorded a {kind} of "
+        f"{format_money(amount, bill.household)} for {bill.name}",
     )
     return payment
 
@@ -90,7 +92,8 @@ def delete_payment(*, payment: Payment, actor) -> Bill:
         bill.household,
         actor,
         "unpaid",
-        f"{actor.display_name} removed a payment of {amount} from {bill.name}",
+        f"{actor.display_name} removed a payment of "
+        f"{format_money(amount, bill.household)} from {bill.name}",
     )
     return bill
 

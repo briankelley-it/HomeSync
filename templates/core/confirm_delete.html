@@ -1,0 +1,15 @@
+{% extends "layouts/app.html" %}
+{% block title %}Delete {{ object_label }}{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-lg">
+  <div class="card card-body">
+    <h1 class="text-lg font-semibold">Delete {{ object_label }}?</h1>
+    <p class="mt-2 text-sm muted">“{{ object }}” will be permanently removed. This cannot be undone.</p>
+    <form method="post" class="mt-6 flex justify-end gap-3">
+      {% csrf_token %}
+      <a href="{{ cancel_url }}" class="btn-secondary">Cancel</a>
+      <button type="submit" class="btn-danger">Delete</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

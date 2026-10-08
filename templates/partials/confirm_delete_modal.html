@@ -1,0 +1,9 @@
+<form method="post" action="{{ request.get_full_path }}" hx-post="{{ request.get_full_path }}" hx-target="#modal-content" class="p-6">
+  {% csrf_token %}
+  <h2 id="modal-title" class="text-lg font-semibold">Delete {{ object_label }}?</h2>
+  <p class="mt-2 text-sm muted">“{{ object }}” will be permanently removed. This cannot be undone.</p>
+  <div class="mt-6 flex justify-end gap-3">
+    <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
+    <button type="submit" class="btn-danger">Delete</button>
+  </div>
+</form>
