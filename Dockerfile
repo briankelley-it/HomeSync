@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 # Stage 1: build Tailwind CSS and vendor htmx / Chart.js
 # ---------------------------------------------------------------------------
-FROM node:22-alpine AS assets
+FROM node:26-alpine AS assets
 WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
