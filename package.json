@@ -1,0 +1,19 @@
+{
+  "name": "houseledger-frontend",
+  "private": true,
+  "description": "Builds Tailwind CSS and vendors htmx / Chart.js into static/.",
+  "scripts": {
+    "build:css": "tailwindcss -i assets/css/input.css -o static/css/app.css --minify",
+    "watch:css": "tailwindcss -i assets/css/input.css -o static/css/app.css --watch",
+    "vendor": "node scripts/vendor.mjs",
+    "build": "npm run vendor && npm run build:css"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "htmx.org": "^2.0.11"
+  }
+}

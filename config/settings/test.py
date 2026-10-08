@@ -1,10 +1,9 @@
-"""Settings for the pytest suite. Uses PostgreSQL when DATABASE_URL is set."""
+"""Settings for the pytest suite. DATABASE_URL comes from the environment or .env."""
 
 import os
 import tempfile
 
 os.environ.setdefault("DJANGO_SECRET_KEY", "test-only-insecure-key")
-os.environ.setdefault("DATABASE_URL", "postgres://houseledger:houseledger@localhost:5432/houseledger")
 os.environ.setdefault("DJANGO_DEBUG", "False")
 
 from .base import *  # noqa: E402,F403

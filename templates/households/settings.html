@@ -1,0 +1,22 @@
+{% extends "layouts/app.html" %}
+{% block title %}Household settings{% endblock %}
+{% block content %}
+<div class="max-w-2xl space-y-6">
+  <div>
+    <h1 class="page-title">Household settings</h1>
+    <p class="page-subtitle">Name and display currency for {{ household.name }}.</p>
+  </div>
+  <form method="post" class="card card-body space-y-6" novalidate>
+    {% csrf_token %}
+    {{ form }}
+    <div class="flex justify-end"><button type="submit" class="btn-primary">Save settings</button></div>
+  </form>
+  <div class="card card-body flex items-center justify-between gap-4">
+    <div>
+      <h2 class="card-title">Another household?</h2>
+      <p class="mt-1 text-sm muted">Keep a separate ledger, for example for a rental property you co-own.</p>
+    </div>
+    <a href="{% url 'households:create' %}" class="btn-secondary">New household</a>
+  </div>
+</div>
+{% endblock %}

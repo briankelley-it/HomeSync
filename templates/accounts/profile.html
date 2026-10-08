@@ -1,0 +1,22 @@
+{% extends "layouts/app.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="max-w-2xl">
+  <h1 class="page-title">Your profile</h1>
+  <p class="page-subtitle">{{ user.email }}</p>
+  <form method="post" class="card card-body mt-6 space-y-6" novalidate>
+    {% csrf_token %}
+    {{ form }}
+    <div class="flex justify-end">
+      <button type="submit" class="btn-primary">Save changes</button>
+    </div>
+  </form>
+  <div class="card card-body mt-6 flex items-center justify-between gap-4">
+    <div>
+      <h2 class="card-title">Password</h2>
+      <p class="mt-1 text-sm muted">Use at least 10 characters that you do not use elsewhere.</p>
+    </div>
+    <a href="{% url 'accounts:password_change' %}" class="btn-secondary">Change password</a>
+  </div>
+</div>
+{% endblock %}

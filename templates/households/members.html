@@ -1,0 +1,83 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Members{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <div>
+    <h1 class="page-title">Members</h1>
+    <p class="page-subtitle">People who can see {{ household.name }}. Viewers can only read; members can record bills and payments; admins manage settings and people.</p>
+  </div>
+
+  <div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th class="text-right">Actions</th></tr></thead>
+        <tbody>
+          {% for m in members %}
+          <tr>
+            <td class="font-medium text-gray-900 dark:text-white">{{ m.user.display_name }}{% if m.user == user %} <span class="badge-gray ml-1">You</span>{% endif %}</td>
+            <td>{{ m.user.email }}</td>
+            <td>
+              {% if membership.can_manage and m.rank <= membership.rank and m.user != user %}
+              <form method="post" action="{% url 'households:change_role' m.pk %}" class="flex items-center gap-2">
+                {% csrf_token %}
+                <select name="role" class="input !w-auto !py-1 text-xs" onchange="this.form.submit()" aria-label="Role for {{ m.user.email }}">
+                  {% for value, label in role_form.fields.role.choices %}
+                    <option value="{{ value }}" {% if value == m.role %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </form>
+              {% else %}
+                <span class="badge-{% if m.role == 'owner' %}green{% elif m.role == 'admin' %}blue{% else %}gray{% endif %}">{{ m.get_role_display }}</span>
+              {% endif %}
+            </td>
+            <td class="text-right">
+              {% if m.user == user %}
+              <form method="post" action="{% url 'households:remove_member' m.pk %}" onsubmit="return confirm('Leave {{ household.name|escapejs }}?')">
+                {% csrf_token %}<button class="btn-ghost btn-sm text-rose-600">Leave</button>
+              </form>
+              {% elif membership.can_manage and m.rank <= membership.rank %}
+              <form method="post" action="{% url 'households:remove_member' m.pk %}" onsubmit="return confirm('Remove {{ m.user.display_name|escapejs }} from the household?')">
+                {% csrf_token %}<button class="btn-ghost btn-sm text-rose-600">Remove</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if membership.can_manage %}
+  <div class="grid gap-6 lg:grid-cols-2">
+    <form method="post" class="card" novalidate>
+      {% csrf_token %}
+      <div class="card-header"><h2 class="card-title">Invite someone</h2></div>
+      <div class="card-body space-y-5">
+        {{ form }}
+        <div class="flex justify-end"><button type="submit" class="btn-primary">{% icon "plus" %} Send invitation</button></div>
+      </div>
+    </form>
+    <div class="card">
+      <div class="card-header"><h2 class="card-title">Pending invitations</h2></div>
+      <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+        {% for inv in invitations %}
+        <li class="flex items-center justify-between gap-4 px-5 py-3 text-sm">
+          <div>
+            <p class="font-medium">{{ inv.email }}</p>
+            <p class="text-xs muted">{{ inv.get_role_display }} · expires {{ inv.expires_at|date:"M j" }}</p>
+          </div>
+          <form method="post" action="{% url 'households:revoke_invitation' inv.pk %}">
+            {% csrf_token %}<button class="btn-ghost btn-sm">Revoke</button>
+          </form>
+        </li>
+        {% empty %}
+        <li class="px-5 py-6 text-sm muted">No pending invitations.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

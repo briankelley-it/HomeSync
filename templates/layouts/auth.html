@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block body %}
+<div class="flex min-h-full">
+  <div class="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-emerald-700 p-12 text-white lg:flex">
+    <div class="absolute -top-24 -right-24 size-96 rounded-full bg-emerald-500/30 blur-3xl"></div>
+    <div class="absolute -bottom-32 -left-16 size-96 rounded-full bg-emerald-900/40 blur-3xl"></div>
+    <div class="relative flex items-center gap-2.5">
+      <span class="grid size-9 place-items-center rounded-lg bg-white/15">{% icon "home" "size-5" %}</span>
+      <span class="text-lg font-semibold">HouseLedger</span>
+    </div>
+    <div class="relative max-w-md">
+      <h2 class="text-3xl font-semibold leading-tight tracking-tight">Every household bill, budget, and receipt in one calm place.</h2>
+      <p class="mt-4 text-emerald-100">Track what is due, record what was paid, and see where the money goes, together with everyone you share a home with.</p>
+    </div>
+    <p class="relative text-sm text-emerald-200">HouseLedger never moves money. Payments are recorded by you.</p>
+  </div>
+  <div class="flex flex-1 flex-col justify-center px-6 py-12 sm:px-12">
+    <div class="mx-auto w-full max-w-sm">
+      <div class="mb-8 flex items-center gap-2.5 lg:hidden">
+        <span class="grid size-8 place-items-center rounded-lg bg-emerald-600 text-white">{% icon "home" "size-5" %}</span>
+        <span class="text-base font-semibold">HouseLedger</span>
+      </div>
+      {% include "partials/messages.html" %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

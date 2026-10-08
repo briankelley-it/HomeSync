@@ -1,0 +1,15 @@
+{% with wt=field.widget_type %}
+<div class="form-field{% if field.errors %} has-error{% endif %}{% if wt == 'textarea' or wt == 'clearablefile' or wt == 'file' or field.field.wide %} sm:col-span-2{% endif %}">
+  {% if wt == 'checkbox' %}
+    <div class="flex items-center gap-2 pt-1">
+      {{ field }}
+      <label for="{{ field.id_for_label }}" class="!mb-0">{{ field.label }}</label>
+    </div>
+  {% else %}
+    {% if field.label %}{{ field.label_tag }}{% endif %}
+    {{ field }}
+  {% endif %}
+  {% if field.help_text %}<p class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</p>{% endif %}
+  {{ field.errors }}
+</div>
+{% endwith %}

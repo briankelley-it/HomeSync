@@ -1,0 +1,14 @@
+{% extends "layouts/auth.html" %}
+{% block title %}Create a household{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold tracking-tight">Create a household</h1>
+<p class="mt-2 text-sm muted">A household holds your bills, properties, budgets, and members. You can invite others after it is created.</p>
+<form method="post" class="mt-8 space-y-5" novalidate>
+  {% csrf_token %}
+  {{ form }}
+  <button type="submit" class="btn-primary w-full">Create household</button>
+</form>
+{% if user_memberships %}
+<p class="mt-8 text-center text-sm"><a href="{% url 'core:dashboard' %}" class="font-semibold text-emerald-700 hover:underline dark:text-emerald-400">Back to dashboard</a></p>
+{% endif %}
+{% endblock %}

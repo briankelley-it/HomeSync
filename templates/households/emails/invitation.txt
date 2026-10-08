@@ -1,0 +1,11 @@
+Hi,
+
+{{ inviter.display_name }} invited you to join "{{ invitation.household.name }}" on HouseLedger as {{ invitation.get_role_display|lower }}.
+
+Accept the invitation here (expires {{ invitation.expires_at|date:"F j, Y" }}):
+
+{{ accept_url }}
+
+If you were not expecting this, you can ignore this email.
+
+— HouseLedger

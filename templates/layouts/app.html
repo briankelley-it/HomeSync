@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block body %}
+<div class="min-h-full">
+  {# Mobile backdrop #}
+  <div id="sidebar-backdrop" class="fixed inset-0 z-30 hidden bg-gray-900/50 lg:hidden" data-sidebar-close></div>
+
+  {# Sidebar #}
+  <aside id="sidebar"
+         class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-gray-200 bg-white transition-transform lg:translate-x-0 dark:border-gray-800 dark:bg-gray-900">
+    <div class="flex h-16 items-center gap-2.5 px-5">
+      <span class="grid size-8 place-items-center rounded-lg bg-emerald-600 text-white shadow-sm">{% icon "home" "size-5" %}</span>
+      <span class="text-base font-semibold tracking-tight">HouseLedger</span>
+      <button type="button" class="btn-ghost ml-auto !p-1.5 lg:hidden" data-sidebar-close aria-label="Close navigation">{% icon "x-mark" %}</button>
+    </div>
+
+    {% if user_memberships %}
+    <div class="px-3 pb-3">
+      <form method="post" action="{% url 'households:switch' %}">
+        {% csrf_token %}
+        <label for="household-switch" class="sr-only">Active household</label>
+        <select id="household-switch" name="household" class="input !py-1.5 text-sm font-medium" onchange="this.form.submit()">
+          {% for m in user_memberships %}
+            <option value="{{ m.household_id }}" {% if household and m.household_id == household.id %}selected{% endif %}>{{ m.household.name }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+    {% endif %}
+
+    <nav class="flex-1 space-y-6 overflow-y-auto px-3 pb-4" aria-label="Main">
+      <div class="space-y-1">
+        <a href="{% url 'core:dashboard' %}" class="nav-link {% nav_active 'core:dashboard' %}">{% icon "home" %} Dashboard</a>
+      </div>
+      <div class="space-y-1">
+        <p class="px-3 pb-1 text-xs font-semibold tracking-wider text-gray-400 uppercase">Household</p>
+        <a href="{% url 'households:members' %}" class="nav-link {% nav_active 'households:members' %}">{% icon "users" %} Members</a>
+        <a href="{% url 'households:settings' %}" class="nav-link {% nav_active 'households:settings' 'households:create' %}">{% icon "cog" %} Settings</a>
+      </div>
+    </nav>
+
+    <div class="border-t border-gray-200 p-3 dark:border-gray-800">
+      <div class="flex items-center gap-3 rounded-lg px-2 py-2">
+        <a href="{% url 'accounts:profile' %}" class="grid size-9 place-items-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">{{ user.initials }}</a>
+        <div class="min-w-0 flex-1">
+          <a href="{% url 'accounts:profile' %}" class="block truncate text-sm font-medium hover:underline">{{ user.display_name }}</a>
+          <p class="truncate text-xs text-gray-500 dark:text-gray-400">{% if membership %}{{ membership.get_role_display }}{% else %}{{ user.email }}{% endif %}</p>
+        </div>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-ghost !p-1.5" title="Sign out" aria-label="Sign out">{% icon "logout" %}</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+
+  <div class="lg:pl-64">
+    {# Top bar #}
+    <header class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-gray-200 bg-white/80 px-4 backdrop-blur sm:px-6 lg:px-8 dark:border-gray-800 dark:bg-gray-950/80">
+      <button type="button" class="btn-ghost !p-2 lg:hidden" data-sidebar-open aria-label="Open navigation">{% icon "bars" %}</button>
+      <div class="min-w-0 flex-1 truncate text-sm font-medium text-gray-500 dark:text-gray-400">
+        {% block breadcrumb %}{% if household %}{{ household.name }}{% endif %}{% endblock %}
+      </div>
+      {% block actions %}{% endblock %}
+      <button type="button" class="btn-ghost !p-2" data-theme-toggle aria-label="Toggle dark mode">
+        <span class="dark:hidden">{% icon "moon" %}</span><span class="hidden dark:inline">{% icon "sun" %}</span>
+      </button>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {% include "partials/messages.html" %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<dialog id="modal" class="modal" aria-labelledby="modal-title">
+  <div id="modal-content"></div>
+</dialog>
+{% endblock %}
