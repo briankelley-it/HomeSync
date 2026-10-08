@@ -70,3 +70,8 @@ filterwarnings = [
 [tool.coverage.run]
 source = ["apps"]
 omit = ["*/migrations/*"]
+
+[tool.coverage.report]
+fail_under = 85
+skip_covered = true
+show_missing = true
