@@ -7,6 +7,7 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.bills.models import Bill, Category, Frequency, RecurringBill
 from apps.households.models import Household, Membership, Role
+from apps.payments.models import Payment
 from apps.properties.models import Property
 
 
@@ -78,3 +79,13 @@ class RecurringBillFactory(factory.django.DjangoModelFactory):
     amount = Decimal("59.99")
     frequency = Frequency.MONTHLY
     start_date = factory.LazyFunction(timezone.localdate)
+
+
+class PaymentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Payment
+
+    bill = factory.SubFactory(BillFactory)
+    household = factory.SelfAttribute("bill.household")
+    amount = Decimal("25.00")
+    paid_on = factory.LazyFunction(timezone.localdate)
