@@ -11,5 +11,6 @@ urlpatterns = [
     path("properties/", include("apps.properties.urls")),
     path("budgets/", include("apps.budgets.urls")),
     path("documents/", include("apps.documents.urls")),
+    path("notifications/", include("apps.notifications.urls")),
     path("", include("apps.core.urls")),
 ]

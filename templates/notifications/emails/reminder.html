@@ -1,0 +1,43 @@
+{% load ui %}<!doctype html>
+<html lang="en">
+<body style="margin:0;background:#f9fafb;font-family:Inter,Segoe UI,Helvetica,Arial,sans-serif;color:#111827;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;">
+        <tr><td style="padding:24px 28px;border-bottom:1px solid #f3f4f6;">
+          <span style="display:inline-block;background:#059669;color:#fff;font-weight:700;border-radius:8px;padding:4px 10px;font-size:13px;">HouseLedger</span>
+          <h1 style="margin:16px 0 4px;font-size:20px;">Bills that need attention</h1>
+          <p style="margin:0;color:#6b7280;font-size:14px;">Hi {{ user.display_name }}, here is the latest for {{ household.name }}.</p>
+        </td></tr>
+        {% if overdue %}
+        <tr><td style="padding:20px 28px 0;">
+          <p style="margin:0 0 8px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#e11d48;">Overdue</p>
+          {% for bill in overdue %}
+          <table role="presentation" width="100%" style="border-bottom:1px solid #f3f4f6;"><tr>
+            <td style="padding:10px 0;font-size:14px;"><strong>{{ bill.name }}</strong><br><span style="color:#6b7280;font-size:12px;">was due {{ bill.due_date|date:"M j" }}</span></td>
+            <td align="right" style="padding:10px 0;font-size:14px;font-weight:600;color:#e11d48;">{{ bill.balance|money:household }}</td>
+          </tr></table>
+          {% endfor %}
+        </td></tr>
+        {% endif %}
+        {% if upcoming %}
+        <tr><td style="padding:20px 28px 0;">
+          <p style="margin:0 0 8px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#b45309;">Coming up</p>
+          {% for bill in upcoming %}
+          <table role="presentation" width="100%" style="border-bottom:1px solid #f3f4f6;"><tr>
+            <td style="padding:10px 0;font-size:14px;"><strong>{{ bill.name }}</strong><br><span style="color:#6b7280;font-size:12px;">due {{ bill.due_date|date:"l, M j" }}</span></td>
+            <td align="right" style="padding:10px 0;font-size:14px;font-weight:600;">{{ bill.balance|money:household }}</td>
+          </tr></table>
+          {% endfor %}
+        </td></tr>
+        {% endif %}
+        <tr><td style="padding:24px 28px;">
+          <a href="{{ site_url }}/bills/" style="display:inline-block;background:#059669;color:#fff;text-decoration:none;font-weight:600;font-size:14px;border-radius:8px;padding:10px 16px;">Open HouseLedger</a>
+          <p style="margin:16px 0 0;color:#6b7280;font-size:12px;">Already paid? Record the payment so it stops showing as due. HouseLedger never marks bills paid on its own.</p>
+          <p style="margin:8px 0 0;color:#9ca3af;font-size:12px;"><a href="{{ site_url }}/notifications/" style="color:#9ca3af;">Notification settings</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>

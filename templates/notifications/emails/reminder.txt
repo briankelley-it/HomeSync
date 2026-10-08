@@ -1,0 +1,17 @@
+{% load ui %}{% autoescape off %}Hi {{ user.display_name }},
+
+Here is what needs attention in {{ household.name }}.
+{% if overdue %}
+OVERDUE
+{% for bill in overdue %}- {{ bill.name }}: {{ bill.balance|money:household }} was due {{ bill.due_date|date:"M j" }}
+{% endfor %}{% endif %}{% if upcoming %}
+COMING UP
+{% for bill in upcoming %}- {{ bill.name }}: {{ bill.balance|money:household }} due {{ bill.due_date|date:"l, M j" }}
+{% endfor %}{% endif %}
+Already paid one of these? Record the payment in HouseLedger so it stops showing as due:
+{{ site_url }}/bills/
+
+Change how often you get these emails: {{ site_url }}/notifications/
+
+— HouseLedger
+{% endautoescape %}

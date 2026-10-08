@@ -47,6 +47,7 @@
         <p class="px-3 pb-1 text-xs font-semibold tracking-wider text-gray-400 uppercase">Household</p>
         <a href="{% url 'households:members' %}" class="nav-link {% nav_active 'households:members' %}">{% icon "users" %} Members</a>
         <a href="{% url 'bills:category_list' %}" class="nav-link {% nav_active 'bills:category' %}">{% icon "tag" %} Categories</a>
+        <a href="{% url 'notifications:preferences' %}" class="nav-link {% nav_active 'notifications:' %}">{% icon "bell" %} Notifications</a>
         <a href="{% url 'households:settings' %}" class="nav-link {% nav_active 'households:settings' 'households:create' %}">{% icon "cog" %} Settings</a>
       </div>
     </nav>

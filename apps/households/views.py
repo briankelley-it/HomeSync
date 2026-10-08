@@ -1,15 +1,15 @@
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.mail import send_mail
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.generic import FormView, UpdateView
+
+from apps.notifications.tasks import send_email
 
 from . import services
 from .forms import HouseholdForm, InvitationForm, RoleForm
@@ -103,14 +103,8 @@ class MembersView(HouseholdMixin, FormView):
             "households/emails/invitation.txt",
             {"invitation": invitation, "accept_url": accept_url, "inviter": self.request.user},
         )
-        transaction.on_commit(
-            lambda: send_mail(
-                f"You're invited to {self.household.name} on HouseLedger",
-                body,
-                settings.DEFAULT_FROM_EMAIL,
-                [invitation.email],
-            )
-        )
+        subject = f"You're invited to {self.household.name} on HouseLedger"
+        transaction.on_commit(lambda: send_email.delay(subject, body, [invitation.email]))
         messages.success(self.request, f"Invitation sent to {invitation.email}.")
         return redirect("households:members")
 
