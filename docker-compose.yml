@@ -1,10 +1,47 @@
+# Local, production-like stack:
+#   docker compose up --build
+# Then open http://localhost:8000 and view outgoing email at http://localhost:8025.
+#
+# Secrets come from .env (see .env.example). The Postgres password below is a
+# local-only default; override POSTGRES_PASSWORD for anything shared.
+
+x-app: &app
+  build: .
+  image: houseledger:local
+  env_file:
+    - path: .env
+      required: false
+  environment: &app-env
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY in .env}
+    DJANGO_DEBUG: "False"
+    DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+    DJANGO_CSRF_TRUSTED_ORIGINS: http://localhost:8000
+    # Plain HTTP on localhost; behind a TLS proxy in production keep the default (True).
+    DJANGO_SECURE_SSL_REDIRECT: "False"
+    DATABASE_URL: postgres://houseledger:${POSTGRES_PASSWORD:-houseledger}@db:5432/houseledger
+    REDIS_URL: redis://redis:6379/0
+    CACHE_URL: rediscache://redis:6379/1
+    EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+    EMAIL_HOST: mailpit
+    EMAIL_PORT: "1025"
+    EMAIL_USE_TLS: "False"
+    SITE_URL: http://localhost:8000
+    MEDIA_ROOT: /app/private_media
+  volumes:
+    - media:/app/private_media
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
 services:
   db:
     image: postgres:17-alpine
     environment:
       POSTGRES_DB: houseledger
       POSTGRES_USER: houseledger
-      POSTGRES_PASSWORD: houseledger  # local development only
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-houseledger}
     ports:
       - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
@@ -25,5 +62,45 @@ services:
       timeout: 5s
       retries: 10
 
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "8025:8025"
+
+  migrate:
+    <<: *app
+    healthcheck:
+      disable: true
+    command: python manage.py migrate --noinput
+    restart: "no"
+
+  web:
+    <<: *app
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *app
+    healthcheck:
+      disable: true
+    command: celery -A config worker --loglevel=info
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  beat:
+    <<: *app
+    healthcheck:
+      disable: true
+    command: celery -A config beat --loglevel=info --schedule /tmp/celerybeat-schedule
+    volumes: []
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
 volumes:
   postgres-data:
+  media:

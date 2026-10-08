@@ -11,6 +11,8 @@ mkdirSync(out, { recursive: true });
 const files = {
   "htmx.org/dist/htmx.min.js": "htmx.min.js",
   "chart.js/dist/chart.umd.min.js": "chart.umd.min.js",
+  // Source map referenced by the bundle; needed by the hashed static manifest.
+  "chart.js/dist/chart.umd.min.js.map": "chart.umd.min.js.map",
 };
 
 for (const [src, dest] of Object.entries(files)) {

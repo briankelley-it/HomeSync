@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_VERSION: "0.12.17"
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "22"
+
+jobs:
+  lint:
+    name: Lint (Ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: ${{ env.UV_VERSION }}
+      - run: uv sync --frozen
+      # Includes flake8-bandit (S) security rules; see pyproject.toml.
+      - run: uv run ruff check --output-format=github .
+      - run: uv run ruff format --check .
+
+  test:
+    name: Tests (pytest + Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: houseledger
+          POSTGRES_USER: houseledger
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U houseledger" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://houseledger:ci-only-password@localhost:5432/houseledger
+      REDIS_URL: redis://localhost:6379/0
+      DJANGO_SECRET_KEY: ci-only-not-a-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: ${{ env.UV_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: uv sync --frozen
+      - run: npm ci
+      - run: npm run build
+
+      - name: Migrations are up to date
+        run: uv run python manage.py makemigrations --check --dry-run
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.test
+
+      - name: Unit and integration tests
+        run: uv run pytest --cov --cov-report=term --cov-report=xml
+
+      - name: Install Playwright browser
+        run: uv run playwright install --with-deps chromium
+
+      - name: Browser tests
+        run: uv run pytest -m e2e
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage.xml
+          if-no-files-found: ignore
+
+  security:
+    name: Security checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: ${{ env.UV_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: uv sync --frozen
+
+      - name: Python dependency vulnerabilities (pip-audit)
+        run: |
+          uv export --frozen --no-dev --no-emit-project --no-hashes > /tmp/requirements.txt
+          uv run pip-audit --strict -r /tmp/requirements.txt
+
+      - name: Frontend dependency vulnerabilities (shipped packages)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Django deployment checklist
+        run: uv run python manage.py check --deploy --fail-level WARNING
+        env:
+          DJANGO_DEBUG: "False"
+          DJANGO_SECRET_KEY: ${{ github.run_id }}-deploy-check-placeholder-${{ github.sha }}
+          DATABASE_URL: sqlite:////tmp/deploy-check.sqlite3
+          CACHE_URL: rediscache://localhost:6379/1
+          SILENCED_SYSTEM_CHECKS: security.W021  # HSTS preload is opt-in
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --tag houseledger:ci .
+      - name: Container serves the health endpoint
+        run: |
+          docker network create hl
+          docker run -d --name db --network hl -e POSTGRES_DB=houseledger \
+            -e POSTGRES_USER=houseledger -e POSTGRES_PASSWORD=ci-only-password postgres:17-alpine
+          for i in $(seq 1 30); do docker exec db pg_isready -U houseledger && break; sleep 1; done
+          ENV="-e DJANGO_SECRET_KEY=ci-only-not-a-secret -e DJANGO_SECURE_SSL_REDIRECT=False \
+            -e DATABASE_URL=postgres://houseledger:ci-only-password@db:5432/houseledger"
+          docker run --rm --network hl $ENV houseledger:ci python manage.py migrate --noinput
+          docker run -d --name web --network hl -p 8000:8000 $ENV houseledger:ci
+          for i in $(seq 1 30); do curl -fsS localhost:8000/health/ && exit 0; sleep 1; done
+          docker logs web; exit 1
