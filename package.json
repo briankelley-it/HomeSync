@@ -13,7 +13,7 @@
     "tailwindcss": "^4.3.3"
   },
   "dependencies": {
-    "chart.js": "^4.5.1",
+    "chart.js": "^4.6.1",
     "htmx.org": "^2.0.11"
   }
 }
